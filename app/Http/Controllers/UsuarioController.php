@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Usuarios;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
-use QrCode;
 
 class UsuarioController extends Controller
 {
@@ -22,16 +20,18 @@ class UsuarioController extends Controller
         return response()->view('home')->withCookie($cookie);
     }
 
-    public function dobleFactor() {
-        $datos = request();
+    public function dobleFactor($datos) {
+        // $datos = request()->all();
+        $datos = base64_decode($datos);
+        // $datos = json_decode($datos, true);
 
         $numero = rand(0, 9).rand(0, 9).rand(0, 9).rand(0, 9).rand(0, 9).rand(0, 9);
 
         $cookie = cookie("doble_factor", $numero, 30);
 
-        $qr = \SimpleSoftwareIO\QrCode\Facades\QrCode::format("svg")->size(100)->color(0,0,0)->generate($numero);
+        $qr = \SimpleSoftwareIO\QrCode\Facades\QrCode::format("svg")->size(200)->color(0,0,0)->generate($numero);
 
-        return response()->view("segundo-factor", compact('qr'))->withCookie($cookie);
+        return response()->view("segundo-factor", compact('qr', 'datos'))->withCookie($cookie);
     }
 
     public function sesiones () {
@@ -52,5 +52,19 @@ class UsuarioController extends Controller
         }else {
             return redirect()->route('inicio')->with('correo', 'Correo erroneo, verifique de nuevo');
         }
+    }
+
+    public function verificarDobleFactor() {
+        $datos = request()->all();
+
+        if ($datos['codigo'] == request()->cookie("doble_factor")) {
+            $login = json_decode($datos['datos'], true);
+
+            if (auth()->attempt($login)) {
+                return redirect()->intended('inicio')->withSuccess('Signed in');
+            }
+        }
+
+        return redirect()->route('sesiones');
     }
 }

@@ -37,4 +37,18 @@ class LoginController extends Controller
     {
         $this->middleware('guest')->except('logout');
     }
+
+    public function login() {
+
+        $datos = request()->except('_token');
+        // dd($datos);
+        $datos = base64_encode(json_encode($datos));
+        // cookie('data', json_encode($datos), 10);
+        return redirect()->route("two-factor-verify", ['datos' => $datos]);
+    }
+
+    public function username()
+    {
+        return 'correo';
+    }
 }

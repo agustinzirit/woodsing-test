@@ -19,7 +19,7 @@ class VerificarEmail
     {
 
         if (auth()->check() == false) {
-            return redirect()->route("registrar");
+            return redirect()->route("sesiones");
         }else{
             $usuario = DB::table("usuarios")->where("correo", auth()->user()->correo)->first();
 
